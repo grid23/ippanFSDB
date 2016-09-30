@@ -4,15 +4,16 @@ const { class:klass } = require("ippankiban/lib/class")
 const { stat } = require("fs")
 const { typeOf } = require("ippankiban/lib/type")
 
+const { DBQuery } = require("./DBQuery")
 const { Socket:NetSocket } = require("net")
 const { Node } = require("ippankiban/lib/Node")
 
 module.exports.DBQIOverSocket = klass(Node, statics => {
     const qis = new WeakMap
 
-    const d_binaries = require("./d_binaries")
-    const d_parsers = require("./d_parsers")
-    const forbidden = require("./forbidden")
+    const d_binaries = require("../d_binaries")
+    const d_parsers = require("../d_parsers")
+    const forbidden = require("../forbidden")
 
     return {
         constructor: function(root, { binaries, parsers }){
@@ -44,7 +45,7 @@ module.exports.DBQIOverSocket = klass(Node, statics => {
                             : d_parsers
 
                     resolve({ binaries, parsers })
-              })
+                })
 
             ])
             .catch(e => console.error(e)) //TODO
@@ -52,25 +53,34 @@ module.exports.DBQIOverSocket = klass(Node, statics => {
                 qis.get(this).set("root", root)
                 qis.get(this).set("binaries", binaries)
                 qis.get(this).set("parsers", parsers)
-                console.log(root, binaries, parsers)
+
+                process.send("ready")
             }))
 
-            process.addListener("message", ({data, socket}) => {
+            process.addListener("message", ({cmd, path, socket}) => {
                 qis.get(this).get("ready").then(() => {
-                    console.log(data, socket)
-
                     const netSocket = new NetSocket
                     netSocket.on("end", e => {
 
                     })
 
                     netSocket.on("connect", () => {
+                        const query = new DBQuery(this.dictionary, { path })
                         netSocket.end(JSON.stringify({res: "coucou"}))
                     })
 
                     netSocket.connect(socket)
                 })
             })
+        }
+      , dictionary: { enumerable: true,
+            get: function(){
+                return {
+                    root: qis.get(this).get("root")
+                  , binaries: qis.get(this).get("binaries")
+                  , parsers: qis.get(this).get("parsers")
+                }
+            }
         }
     }
 })

@@ -1,15 +1,12 @@
 "use strict"
 
-const DB = require("./lib/DB").DB
-const db = new DB({ dir: "./sample" })
+process.setMaxListeners(1000)
+process.addListener("SIGINT", () => process.exit() )
+process.addListener("SIGTERM", () => process.exit() )
 
-db.addEventListener("error", e => {
-    console.error(e.error)
+const {DB} = require("./lib/db/DB")
+const db = new DB({ root: "./sample" })
+
+db.addEventListener("readystatechange", ({readystate}) => {
+    console.log("db readystate change =>", readystate)
 })
-
-db.addEventListener("childprocessexit", e => {
-    console.log("child exited")
-})
-
-
-db.query("/foo")

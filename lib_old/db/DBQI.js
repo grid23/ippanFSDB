@@ -2,10 +2,10 @@
 
 const {class:klass} = require("ippankiban/lib/class")
 
+const { DBQIOverHTTP } = require("./DBQIOverHTTP")
 const { DBQIOverSocket } = require("./DBQIOverSocket")
 
 module.exports.DBQI = klass(statics => {
-
     Object.defineProperties(statics, {
         overSocket: { enumerable: true,
             value: (root, dict) => new DBQIOverSocket(root, dict)
