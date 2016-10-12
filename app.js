@@ -11,10 +11,10 @@ db.addEventListener("readystatechange", ({readystate}) => {
     console.log("db readystate change =>", readystate)
 })
 
-/*
-db.query("/downloads/images/style/", (err, node) => {
-    console.log("yyy", err, node)
-}).catch(e => {
-    console.log("xxx")
+db.getFruits((err, fruits) => {
+    console.log("fruits.length", fruits.length)
 })
-*/
+
+db.query("/downloads/images/style/", (err, node) => {
+    node.read()
+}).catch(e => console.error(e))
