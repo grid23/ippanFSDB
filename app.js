@@ -20,5 +20,5 @@ db.getFruits((err, fruits) => {
 db.query("/a/b", (err, node) => {
     if ( err ) throw (err)
 
-    node.read({ lang: "en" })
+    node.read("lang=en!")
 }).catch(e => console.error(e))
