@@ -4,6 +4,7 @@ const { class:klass } = require("ippankiban/lib/class")
 const { mkdir, rmdirSync, stat, statSync } = require("fs")
 const { dirname, resolve:resolvePath, join:joinPath } = require("path")
 const { typeOf } = require("ippankiban/lib/type")
+const { nextTick } = process
 
 const { DBTree } = require("./DBTree")
 const { EventTarget } = require("ippankiban/lib/EventTarget")
@@ -34,7 +35,7 @@ module.exports.DB = klass(EventTarget, statics => {
             value: new Set(["", ".", "./", "/"])
         }
       , parser: { enumerable: true,
-            value: new Set([".json", ".yml"])
+            value: new Set([".json", ".", ".yml"])
         }
       , tmp_dir: { enumerable: true,
             get: () => tmp_dir
@@ -55,7 +56,7 @@ module.exports.DB = klass(EventTarget, statics => {
     const sync = instance => {
         return function(){
             return new Promise((resolve, reject) => {
-                process.nextTick(() => {
+                nextTick(() => {
                     readyStateChange(this, module.exports.DB.SYNCING)
                     resolve()
                 })
@@ -116,7 +117,7 @@ module.exports.DB = klass(EventTarget, statics => {
             // ready
             .then(() => {
                 return new Promise((resolve, reject) => {
-                    process.nextTick(() => {
+                    nextTick(() => {
                         readyStateChange(this, module.exports.DB.READY)
                         resolve()
                     })
@@ -133,7 +134,7 @@ module.exports.DB = klass(EventTarget, statics => {
             dbs.get(this).set("binary", binaries && binaries[Symbol.iterator] ? new Set([...binaries]) : new Set([...module.exports.DB.binary]))
             dbs.get(this).set("parser", parsers && parsers[Symbol.iterator] ? new Set([...parsers]) : new Set([...module.exports.DB.parser]))
             dbs.get(this).set("ready", new Promise(resolve => {
-                process.nextTick(()=> {
+                nextTick(()=> {
                     readyStateChange(this, module.exports.DB.INITIALIZING)
                     resolve()
                 })
@@ -184,7 +185,7 @@ module.exports.DB = klass(EventTarget, statics => {
                     })
                 })
             })
-            .then(() => sync(this) ))
+            .then(() => sync(this)))
 
             const onexit = code => {
                 try {
@@ -378,22 +379,24 @@ module.exports.DB = klass(EventTarget, statics => {
       , sync: { enumerable: true,
           value: function(){
               return dbs.get(this).get("ready")
-                .then(() => {
-                    return new Promise((resolve, reject) => {
-                        if ( this.readystate === module.exports.DB.READY )
-                          return sync(this)
+                .then(() => new Promise((resolve, reject) => {
+                    console.log("x", this.readystate)
+                    if ( this.readystate === module.exports.DB.READY ) {
+                        sync(this).then(resolve, reject)
+                        return
+                    }
+                    console.log("a")
+                    const onready = ({readystate}) => {
+                        console.log("w")
+                        if ( readystate !== module.exports.DB.READY )
+                          return
 
-                        const onready = ({readystate}) => {
-                            if ( readystate !== module.exports.DB.READY )
-                              return
-
-                            this.removeEventListener("readystatechange", onready, true)
-                            sync(this)
-                              .then(resolve, reject)
-                        }
-                        this.addEventListener("readystatechange", onready, true)
-                    })
-                })
+                        this.removeEventListener("readystatechange", onready, true)
+                        console.log("y")
+                        sync(this).then(resolve, reject)
+                    }
+                    this.addEventListener("readystatechange", onready, true)
+                }))
           }
         }
       , tmp: { enumerable: true,

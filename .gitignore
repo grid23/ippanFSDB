@@ -2,7 +2,7 @@
 node_modules/
 archive/
 .npmrc
-.config.json
+yarn.lock
 
 #svn
 .svn/

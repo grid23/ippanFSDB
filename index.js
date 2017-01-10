@@ -1,3 +1,3 @@
 "use strict"
 
-module.exports.DB = require("./lib/client/DB").DB
+module.exports.DB = require("./lib/db/DB").DB
