@@ -1,3 +1,4 @@
 $foo = foo
+
 z = bar
 arr = [, e, $foo]

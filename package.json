@@ -7,6 +7,7 @@
     "main": "./index.js",
     "dependencies": {
         "ippankiban": "https://github.com/grid23/ippankibanJS.git",
-        "js-yaml": "^3.7.0"
+        "js-yaml": "^3.7.0",
+        "js-beautify": "*"
     }
 }
